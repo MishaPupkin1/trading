@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Торговые Сигналы</title>
+  <style>
+    :root {
+      --bg: #09111f;
+      --bg-glow: #12233e;
+      --surface: rgba(17, 28, 52, 0.94);
+      --surface-soft: rgba(14, 24, 45, 0.92);
+      --card: #101b34;
+      --card-2: #0d1730;
+      --stroke: rgba(113, 146, 214, 0.12);
+      --text: #f4f7ff;
+      --muted: #8c9ab7;
+      --accent-a: #22dfc8;
+      --accent-b: #5db8ff;
+      --sell: #ff6c7d;
+      --buy: #5ce38b;
+      --warn: #ffd36a;
+      --shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --font-main: "Segoe UI", "Inter", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      color-scheme: dark;
+      font-family: var(--font-main);
+      color: var(--text);
+      background:
+        radial-gradient(circle at top center, rgba(46, 89, 164, 0.34), transparent 34%),
+        radial-gradient(circle at bottom left, rgba(34, 223, 200, 0.16), transparent 30%),
+        linear-gradient(180deg, #08111e 0%, #060c18 100%);
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      padding: 24px 12px 40px;
+    }
+
+    .app-shell {
+      width: min(100%, 420px);
+      position: relative;
+    }
+
+    .hero {
+      padding: 8px 6px 24px;
+    }
+
+    .hero__title {
+      margin: 0;
+      font-size: 1.95rem;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      font-weight: 700;
+    }
+
+    .market-switch {
+      margin-top: 22px;
+      display: inline-grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      padding: 6px;
+      background: rgba(13, 20, 38, 0.82);
+      border: 1px solid rgba(120, 143, 196, 0.12);
+      border-radius: 999px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .market-chip {
+      border: 0;
+      background: transparent;
+      color: #cbd4ea;
+      padding: 12px 18px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform 180ms ease, color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+    }
+
+    .market-chip.active {
+      background: linear-gradient(135deg, var(--accent-a), #48cceb 56%, var(--accent-b));
+      color: #fff;
+      box-shadow: 0 10px 26px rgba(50, 197, 234, 0.28);
+    }
+
+    .market-chip::before {
+      content: "";
+      position: absolute;
+      inset: -40% auto auto -120%;
+      width: 70%;
+      height: 220%;
+      transform: rotate(22deg);
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+      opacity: 0;
+      transition: transform 480ms ease, opacity 220ms ease;
+    }
+
+    .market-chip:hover,
+    .market-chip:focus-visible {
+      transform: translateY(-1px);
+      color: #eef7ff;
+    }
+
+    .market-chip:hover::before,
+    .market-chip:focus-visible::before {
+      opacity: 1;
+      transform: translate(210%, 0) rotate(22deg);
+    }
+
+    .panel {
+      position: relative;
+      background: linear-gradient(180deg, rgba(18, 28, 52, 0.96), rgba(10, 19, 37, 0.98));
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius-xl);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at top right, rgba(93, 184, 255, 0.16), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 20%);
+      pointer-events: none;
+    }
+
+    .section-header {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .section-header__icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: rgba(96, 173, 255, 0.08);
+      border: 1px solid rgba(96, 173, 255, 0.16);
+      color: #dceaff;
+      flex: 0 0 auto;
+    }
+
+    .section-header__title {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .field-stack {
+      display: grid;
+      gap: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 10px;
+      color: #7f8daa;
+      font-size: 0.77rem;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    .input-shell,
+    .select-shell {
+      background: linear-gradient(180deg, rgba(13, 22, 42, 0.98), rgba(10, 17, 34, 0.98));
+      border: 1px solid rgba(138, 159, 204, 0.12);
+      border-radius: var(--radius-md);
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    }
+
+    .custom-select {
+      position: relative;
+    }
+
+    .custom-select.is-open .custom-select__trigger {
+      border-color: rgba(88, 201, 233, 0.34);
+      box-shadow: 0 18px 44px rgba(8, 16, 33, 0.44), inset 0 0 0 1px rgba(92, 203, 232, 0.08);
+    }
+
+    .custom-select__trigger {
+      width: 100%;
+      min-height: 58px;
+      border: 1px solid rgba(138, 159, 204, 0.12);
+      outline: 0;
+      background: linear-gradient(180deg, rgba(13, 22, 42, 0.98), rgba(10, 17, 34, 0.98));
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      border-radius: var(--radius-md);
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .custom-select__trigger:hover,
+    .custom-select__trigger:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(93, 184, 255, 0.22);
+    }
+
+    .custom-select__value {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .custom-select__flag {
+      font-size: 1rem;
+      filter: saturate(1.05);
+    }
+
+    .custom-select__text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .custom-select__trigger::after {
+      content: "";
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      width: 10px;
+      height: 6px;
+      transform: translateY(-50%);
+      pointer-events: none;
+      background: linear-gradient(180deg, #e8f2ff, #b5c6ea);
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+      transition: transform 180ms ease;
+    }
+
+    .custom-select.is-open .custom-select__trigger::after {
+      transform: translateY(-50%) rotate(180deg);
+    }
+
+    .custom-select__menu {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 10px);
+      padding: 10px;
+      border-radius: 22px;
+      background:
+        linear-gradient(180deg, rgba(18, 29, 54, 0.98), rgba(10, 18, 35, 0.98));
+      border: 1px solid rgba(106, 145, 214, 0.18);
+      box-shadow: 0 24px 56px rgba(0, 0, 0, 0.42);
+      backdrop-filter: blur(18px);
+      display: none;
+      z-index: 20;
+    }
+
+    .custom-select.is-open .custom-select__menu {
+      display: block;
+      animation: dropdownIn 180ms ease;
+    }
+
+    .custom-select__list {
+      max-height: 256px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .custom-select__list::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .custom-select__list::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: rgba(116, 146, 202, 0.28);
+    }
+
+    .custom-select__option {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #eef4ff;
+      border-radius: 16px;
+      min-height: 46px;
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 0.98rem;
+      transition: background 160ms ease, transform 160ms ease, color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .custom-select__option:hover,
+    .custom-select__option:focus-visible {
+      background: rgba(52, 91, 162, 0.28);
+      color: #ffffff;
+      transform: translateX(2px);
+    }
+
+    .custom-select__option.is-selected {
+      background: linear-gradient(135deg, rgba(34, 223, 200, 0.18), rgba(93, 184, 255, 0.22));
+      box-shadow: inset 0 0 0 1px rgba(84, 220, 222, 0.1);
+    }
+
+    .custom-select__option-sub {
+      margin-left: auto;
+      color: #7d8fb3;
+      font-size: 0.77rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .locale {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      color: #d5def3;
+    }
+
+    .locale__hint {
+      margin-left: auto;
+      color: #6d7996;
+      font-size: 0.92rem;
+    }
+
+    .expiry-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .expiry-btn {
+      min-height: 78px;
+      padding: 14px 10px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(121, 145, 194, 0.1);
+      background: linear-gradient(180deg, rgba(12, 20, 40, 0.95), rgba(9, 16, 31, 0.98));
+      color: var(--text);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, background 180ms ease, filter 180ms ease;
+    }
+
+    .expiry-btn strong,
+    .expiry-btn span {
+      display: block;
+      text-align: center;
+    }
+
+    .expiry-btn strong {
+      font-size: 1rem;
+      margin-bottom: 6px;
+    }
+
+    .expiry-btn span {
+      color: #9ba9c5;
+      font-size: 0.82rem;
+    }
+
+    .expiry-btn::before {
+      content: "";
+      position: absolute;
+      inset: auto -20% -55% auto;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(76, 210, 235, 0.26), transparent 65%);
+      opacity: 0;
+      transform: scale(0.7);
+      transition: opacity 220ms ease, transform 220ms ease;
+    }
+
+    .expiry-btn:hover,
+    .expiry-btn:focus-visible {
+      transform: translateY(-2px);
+      border-color: rgba(93, 184, 255, 0.22);
+      box-shadow: 0 16px 34px rgba(7, 17, 38, 0.42);
+      filter: brightness(1.04);
+    }
+
+    .expiry-btn:hover::before,
+    .expiry-btn:focus-visible::before {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .expiry-btn.active {
+      background: linear-gradient(135deg, rgba(34, 223, 200, 0.24), rgba(67, 171, 246, 0.22));
+      border-color: rgba(69, 212, 226, 0.42);
+      box-shadow: inset 0 0 0 1px rgba(81, 221, 222, 0.08), 0 16px 38px rgba(17, 62, 102, 0.24);
+      transform: translateY(-1px);
+    }
+
+    .cta {
+      margin-top: 2px;
+      min-height: 60px;
+      border: 0;
+      border-radius: 18px;
+      background: linear-gradient(90deg, var(--accent-a), #4bd4ec 45%, var(--accent-b));
+      color: #fff;
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 36px rgba(46, 172, 223, 0.28);
+      transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease;
+    }
+
+    .cta[disabled] {
+      cursor: not-allowed;
+      opacity: 0.76;
+      filter: saturate(0.9);
+      box-shadow: 0 12px 28px rgba(23, 47, 79, 0.28);
+    }
+
+    .cta[disabled]:hover,
+    .cta[disabled]:focus-visible,
+    .cta[disabled]:active {
+      transform: none;
+      filter: saturate(0.9);
+      box-shadow: 0 12px 28px rgba(23, 47, 79, 0.28);
+    }
+
+    .cta::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, transparent 20%, rgba(255, 255, 255, 0.22) 50%, transparent 80%);
+      transform: translateX(-130%);
+    }
+
+    .cta:hover,
+    .cta:focus-visible {
+      transform: translateY(-2px);
+      filter: brightness(1.03);
+      box-shadow: 0 24px 40px rgba(46, 172, 223, 0.34);
+    }
+
+    .cta:hover::before,
+    .cta:focus-visible::before {
+      animation: shine 1s ease;
+    }
+
+    .cta:active {
+      transform: translateY(1px) scale(0.995);
+      filter: brightness(0.98);
+    }
+
+    .cooldown-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      min-height: 76px;
+      padding: 18px 18px;
+      border-radius: 18px;
+      background:
+        linear-gradient(90deg, rgba(55, 197, 192, 0.88), rgba(86, 121, 227, 0.88)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0));
+      box-shadow: 0 18px 34px rgba(34, 96, 158, 0.24);
+      border: 1px solid rgba(168, 227, 255, 0.18);
+    }
+
+    .cooldown-banner.is-active {
+      display: flex;
+      animation: dropdownIn 180ms ease;
+    }
+
+    .cooldown-banner__left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .cooldown-banner__icon {
+      width: 38px;
+      height: 38px;
+      flex: 0 0 auto;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, 0.12);
+      color: #eaffff;
+    }
+
+    .cooldown-banner__text {
+      color: rgba(244, 250, 255, 0.92);
+      font-weight: 800;
+      font-size: 1rem;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+
+    .cooldown-banner__timer {
+      flex: 0 0 auto;
+      color: rgba(255, 218, 228, 0.96);
+      font-weight: 800;
+      font-size: 1.15rem;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.02em;
+    }
+
+    .signal-card {
+      background: linear-gradient(180deg, rgba(10, 18, 35, 0.96), rgba(8, 15, 29, 0.98));
+      border-radius: 22px;
+      border: 1px solid rgba(111, 139, 191, 0.1);
+      padding: 18px 14px 14px;
+      margin-top: 2px;
+    }
+
+    .signal-card__title {
+      margin: 0;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: 800;
+    }
+
+    .signal-card__meta {
+      margin: 10px 0 18px;
+      text-align: center;
+      color: #8a97b4;
+      font-weight: 600;
+      font-size: 0.93rem;
+    }
+
+    .signal-hero {
+      display: flex;
+      justify-content: center;
+      margin: 0 0 18px;
+    }
+
+    .signal-hero__icon {
+      width: 132px;
+      height: 132px;
+      display: grid;
+      place-items: center;
+      border-radius: 28px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
+        rgba(11, 18, 34, 0.88);
+      border: 1px solid rgba(113, 140, 195, 0.12);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        0 18px 34px rgba(0, 0, 0, 0.22);
+    }
+
+    .signal-hero__icon svg {
+      width: 92px;
+      height: 92px;
+      display: block;
+      filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.18));
+    }
+
+    .signal-hero__icon.buy svg {
+      color: #72f44e;
+    }
+
+    .signal-hero__icon.sell svg {
+      color: #ff6c7d;
+    }
+
+    .signal-hero__icon.neutral svg {
+      color: #9fb0d1;
+    }
+
+    .signal-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .signal-box {
+      min-height: 112px;
+      border-radius: 16px;
+      border: 1px solid rgba(110, 135, 185, 0.1);
+      background: rgba(10, 16, 31, 0.86);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 12px;
+    }
+
+    .signal-box__label {
+      font-size: 0.72rem;
+      color: #7d89a7;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .signal-box__value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+
+    .signal-box__value.sell {
+      color: var(--sell);
+    }
+
+    .signal-box__value.buy {
+      color: var(--buy);
+    }
+
+    .signal-box__value.neutral {
+      color: #ced8ef;
+    }
+
+    .signal-box__subvalue {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #ebf2ff;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+
+    .signal-box__subvalue.high {
+      color: var(--buy);
+    }
+
+    .signal-box__subvalue.medium {
+      color: var(--warn);
+    }
+
+    .signal-box__subvalue.low {
+      color: var(--sell);
+    }
+
+    .timestamp {
+      margin-top: 12px;
+      text-align: center;
+      color: #7380a0;
+      font-size: 0.86rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .indicators {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .indicator-card {
+      min-height: 92px;
+      border-radius: 16px;
+      border: 1px solid rgba(110, 135, 185, 0.1);
+      background: rgba(10, 16, 31, 0.82);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 10px 8px;
+    }
+
+    .indicator-card__name {
+      font-size: 0.74rem;
+      color: #7d89a7;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .indicator-card__value {
+      font-size: 1.28rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .indicator-card__value.buy {
+      color: var(--buy);
+      text-shadow: 0 0 16px rgba(92, 227, 139, 0.18);
+    }
+
+    .indicator-card__value.sell {
+      color: var(--sell);
+      text-shadow: 0 0 16px rgba(255, 108, 125, 0.18);
+    }
+
+    @keyframes shine {
+      from {
+        transform: translateX(-130%);
+      }
+      to {
+        transform: translateX(130%);
+      }
+    }
+
+    @keyframes dropdownIn {
+      from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @media (max-width: 380px) {
+      body {
+        padding-inline: 8px;
+      }
+
+      .panel {
+        padding: 16px;
+      }
+
+      .signal-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .indicators {
+        grid-template-columns: 1fr;
+      }
+
+      .expiry-grid {
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <section class="hero">
+      <h1 class="hero__title">TRUE TRADING</h1>
+      <div class="market-switch" aria-label="Тип рынка">
+        <button class="market-chip active" type="button" data-market="forex">Форекс</button>
+        <button class="market-chip" type="button" data-market="otc">OTC</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-header">
+        <div class="section-header__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.7"/>
+            <circle cx="12" cy="12" r="3.3" stroke="currentColor" stroke-width="1.7"/>
+          </svg>
+        </div>
+        <h2 class="section-header__title">TRUE TRADING</h2>
+      </div>
+
+      <div class="field-stack">
+        <div class="field">
+          <label>Язык</label>
+          <div class="custom-select" id="languageSelect"></div>
+          <input id="language" name="language" type="hidden" value="ru">
+        </div>
+        
+        <div class="field">
+          <label for="pair">Валютная пара</label>
+          <div class="custom-select" id="pairSelect"></div>
+          <input id="pair" name="pair" type="hidden" value="EUR/USD">
+        </div>
+
+        <div class="field">
+          <label>Время экспирации</label>
+          <div class="expiry-grid" id="expiryGrid">
+            <button class="expiry-btn" type="button" data-value="15s" data-label="15 seconds">
+              <strong>15s</strong>
+              <span>15 seconds</span>
+            </button>
+            <button class="expiry-btn" type="button" data-value="30s" data-label="30 seconds">
+              <strong>30s</strong>
+              <span>30 seconds</span>
+            </button>
+            <button class="expiry-btn active" type="button" data-value="1m" data-label="1 minute">
+              <strong>1m</strong>
+              <span>1 minute</span>
+            </button>
+            <button class="expiry-btn" type="button" data-value="3m" data-label="3 minutes">
+              <strong>3m</strong>
+              <span>3 minutes</span>
+            </button>
+            <button class="expiry-btn" type="button" data-value="5m" data-label="5 minutes">
+              <strong>5m</strong>
+              <span>5 minutes</span>
+            </button>
+            <button class="expiry-btn" type="button" data-value="15m" data-label="15 minutes">
+              <strong>15m</strong>
+              <span>15 minutes</span>
+            </button>
+            <button class="expiry-btn" type="button" data-value="30m" data-label="30 minutes">
+              <strong>30m</strong>
+              <span>30 minutes</span>
+            </button>
+          </div>
+        </div>
+
+        <button class="cta" id="generateBtn" type="button">Получить сигнал</button>
+
+        <div class="cooldown-banner" id="cooldownBanner" aria-live="polite">
+          <div class="cooldown-banner__left">
+            <div class="cooldown-banner__icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M13 2L5 14H11L9 22L19 9H13L13 2Z" fill="currentColor"/>
+              </svg>
+            </div>
+            <div class="cooldown-banner__text" id="cooldownText">Следующий сигнал будет доступен через:</div>
+          </div>
+          <div class="cooldown-banner__timer" id="cooldownTimer">01:00</div>
+        </div>
+
+        <section class="signal-card" aria-live="polite">
+          <h3 class="signal-card__title">Сигнал сгенерирован!</h3>
+          <p class="signal-card__meta" id="signalMeta">EUR/USD &nbsp; 1m</p>
+
+          <div class="signal-hero">
+            <div class="signal-hero__icon neutral" id="signalDirectionIcon" aria-hidden="true">
+              <svg viewBox="0 0 64 64" fill="none">
+                <path d="M14 44L28 30L37 39L50 23" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M39 23H50V34" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="signal-grid">
+            <article class="signal-box">
+              <div class="signal-box__label">Направление сигнала</div>
+              <div class="signal-box__value neutral" id="signalDirection">-</div>
+            </article>
+            <article class="signal-box">
+              <div class="signal-box__label">Уровень уверенности</div>
+              <div class="signal-box__subvalue" id="signalConfidence">-</div>
+            </article>
+          </div>
+
+          <div class="indicators">
+            <article class="indicator-card">
+              <div class="indicator-card__name">MACD</div>
+              <div class="indicator-card__value" id="indicatorMacd">--%</div>
+            </article>
+            <article class="indicator-card">
+              <div class="indicator-card__name">EMA</div>
+              <div class="indicator-card__value" id="indicatorEma">--%</div>
+            </article>
+            <article class="indicator-card">
+              <div class="indicator-card__name">RSI</div>
+              <div class="indicator-card__value" id="indicatorRsi">--%</div>
+            </article>
+          </div>
+
+          <div class="timestamp" id="signalTime">--:--:--</div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://telegram.org/js/telegram-web-app.js?61"></script>
+  <script>
+    const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+    const marketButtons = document.querySelectorAll(".market-chip");
+    const expiryButtons = document.querySelectorAll(".expiry-btn");
+    const pairInput = document.getElementById("pair");
+    const languageInput = document.getElementById("language");
+    const pairSelect = document.getElementById("pairSelect");
+    const languageSelect = document.getElementById("languageSelect");
+    const generateBtn = document.getElementById("generateBtn");
+    const signalMeta = document.getElementById("signalMeta");
+    const signalDirection = document.getElementById("signalDirection");
+    const signalDirectionIcon = document.getElementById("signalDirectionIcon");
+    const signalConfidence = document.getElementById("signalConfidence");
+    const signalTime = document.getElementById("signalTime");
+    const indicatorMacd = document.getElementById("indicatorMacd");
+    const indicatorEma = document.getElementById("indicatorEma");
+    const indicatorRsi = document.getElementById("indicatorRsi");
+    const pageTitle = document.querySelector(".hero__title");
+    const sectionTitle = document.querySelector(".section-header__title");
+    const languageLabel = document.querySelector('.field label');
+    const pairLabel = document.querySelector('label[for="pair"]');
+    const expiryLabel = document.querySelectorAll(".field label")[2];
+    const signalCardTitle = document.querySelector(".signal-card__title");
+    const directionLabel = document.querySelectorAll(".signal-box__label")[0];
+    const confidenceLabel = document.querySelectorAll(".signal-box__label")[1];
+    const cooldownBanner = document.getElementById("cooldownBanner");
+    const cooldownText = document.getElementById("cooldownText");
+    const cooldownTimer = document.getElementById("cooldownTimer");
+
+    const languages = [
+      { value: "ru", label: "Русский", flag: "🇷🇺" },
+      { value: "en", label: "English", flag: "🇬🇧" },
+      { value: "hi", label: "हिन्दी", flag: "🇮🇳" },
+      { value: "pt-BR", label: "Português (Brasil)", flag: "🇧🇷" },
+      { value: "fr", label: "Français", flag: "🇫🇷" },
+      { value: "es", label: "Español", flag: "🇪🇸" },
+      { value: "it", label: "Italiano", flag: "🇮🇹" },
+      { value: "uz", label: "O'zbekcha", flag: "🇺🇿" },
+      { value: "de", label: "Deutsch", flag: "🇩🇪" },
+      { value: "tr", label: "Türkçe", flag: "🇹🇷" }
+    ];
+
+    const pairOptions = [
+      { value: "EUR/USD", market: "forex" },
+      { value: "GBP/USD", market: "forex" },
+      { value: "USD/JPY", market: "forex" },
+      { value: "AUD/USD", market: "forex" },
+      { value: "EUR/GBP", market: "forex" },
+      { value: "AUD/CAD", market: "forex" },
+      { value: "EUR/CHF", market: "forex" },
+      { value: "AUD/JPY", market: "forex" },
+      { value: "GBP/AUD", market: "forex" },
+      { value: "GBP/CAD", market: "forex" },
+      { value: "EUR/CAD", market: "forex" },
+      { value: "USD/CAD", market: "forex" },
+      { value: "USD/CHF", market: "forex" },
+      { value: "AUD/CHF", market: "forex" },
+      { value: "GBP/CHF", market: "forex" },
+      { value: "CHF/JPY", market: "forex" },
+      { value: "CAD/JPY", market: "forex" },
+      { value: "EUR/USD OTC", market: "otc" },
+      { value: "GBP/USD OTC", market: "otc" },
+      { value: "USD/ARS OTC", market: "otc" },
+      { value: "USD/CNH OTC", market: "otc" },
+      { value: "USD/EGP OTC", market: "otc" },
+      { value: "EUR/TRY OTC", market: "otc" },
+      { value: "USD/CLP OTC", market: "otc" },
+      { value: "NGN/USD OTC", market: "otc" },
+      { value: "USD/IDR OTC", market: "otc" },
+      { value: "MAD/USD OTC", market: "otc" },
+      { value: "JOD/CNY OTC", market: "otc" },
+      { value: "YER/USD OTC", market: "otc" },
+      { value: "GBP/AUD OTC", market: "otc" },
+      { value: "USD/VND OTC", market: "otc" },
+      { value: "EUR/JPY OTC", market: "otc" },
+      { value: "USD/CHF OTC", market: "otc" },
+      { value: "SAR/CNY OTC", market: "otc" },
+      { value: "BHD/CNY OTC", market: "otc" },
+      { value: "USD/DZD OTC", market: "otc" },
+      { value: "AUD/JPY OTC", market: "otc" },
+      { value: "ZAR/USD OTC", market: "otc" },
+      { value: "USD/PKR OTC", market: "otc" },
+      { value: "GBP/JPY OTC", market: "otc" },
+      { value: "KES/USD OTC", market: "otc" },
+      { value: "UAH/USD OTC", market: "otc" },
+      { value: "AUD/NZD OTC", market: "otc" },
+      { value: "USD/CAD OTC", market: "otc" },
+      { value: "AUD/CHF OTC", market: "otc" },
+      { value: "USD/BRL OTC", market: "otc" },
+      { value: "USD/COP OTC", market: "otc" },
+      { value: "USD/INR OTC", market: "otc" },
+      { value: "USD/MYR OTC", market: "otc" },
+      { value: "USD/PHP OTC", market: "otc" },
+      { value: "USD/SGD OTC", market: "otc" },
+      { value: "USD/THB OTC", market: "otc" },
+      { value: "USD/MXN OTC", market: "otc" },
+      { value: "EUR/NZD OTC", market: "otc" },
+      { value: "USD/RUB OTC", market: "otc" },
+      { value: "AED/CNY OTC", market: "otc" },
+      { value: "TND/USD OTC", market: "otc" },
+      { value: "AUD/CAD OTC", market: "otc" },
+      { value: "AUD/USD OTC", market: "otc" },
+      { value: "CAD/CHF OTC", market: "otc" },
+      { value: "CAD/JPY OTC", market: "otc" },
+      { value: "CHF/JPY OTC", market: "otc" },
+      { value: "EUR/CHF OTC", market: "otc" },
+      { value: "EUR/RUB OTC", market: "otc" },
+      { value: "NZD/JPY OTC", market: "otc" },
+      { value: "NZD/USD OTC", market: "otc" },
+      { value: "OMR/CNY OTC", market: "otc" },
+      { value: "QAR/CNY OTC", market: "otc" },
+      { value: "USD/BDT OTC", market: "otc" }
+    ];
+
+    const translations = {
+      ru: {
+        pageTitle: "TRUE TRADING",
+        marketForex: "Форекс",
+        marketOtc: "OTC",
+        languageLabel: "Язык",
+        pairLabel: "Валютная пара",
+        expiryLabel: "Время экспирации",
+        buttonGetSignal: "Получить сигнал",
+        buttonCooldown: "Ожидайте...",
+        signalGenerated: "Сигнал сгенерирован!",
+        directionLabel: "Направление сигнала",
+        confidenceLabel: "Уровень уверенности",
+        sendToBot: "Отправить сигнал в бот",
+        cooldownText: "Следующий сигнал будет доступен через:",
+        buy: "Покупка",
+        sell: "Продажа",
+        confidenceHigh: "Высокий",
+        confidenceMedium: "Средний",
+        confidenceLow: "Низкий"
+      },
+      en: {
+        pageTitle: "TRUE TRADING",
+        marketForex: "Forex",
+        marketOtc: "OTC",
+        languageLabel: "Language",
+        pairLabel: "Currency Pair",
+        expiryLabel: "Expiration Time",
+        buttonGetSignal: "Get Signal",
+        buttonCooldown: "Please wait...",
+        signalGenerated: "Signal Generated!",
+        directionLabel: "Signal Direction",
+        confidenceLabel: "Confidence Level",
+        sendToBot: "Send Signal To Bot",
+        cooldownText: "Next signal will be available in:",
+        buy: "Buy",
+        sell: "Sell",
+        confidenceHigh: "High",
+        confidenceMedium: "Medium",
+        confidenceLow: "Low"
+      },
+      hi: {
+        pageTitle: "TRUE TRADING",
+        marketForex: "फॉरेक्स",
+        marketOtc: "OTC",
+        languageLabel: "भाषा",
+        pairLabel: "करेंसी पेयर",
+        expiryLabel: "एक्सपायरी समय",
+        buttonGetSignal: "सिग्नल प्राप्त करें",
+        buttonCooldown: "कृपया प्रतीक्षा करें...",
+        signalGenerated: "सिग्नल जनरेट हुआ!",
+        directionLabel: "सिग्नल दिशा",
+        confidenceLabel: "विश्वास स्तर",
+        sendToBot: "बॉट को सिग्नल भेजें",
+        cooldownText: "अगला सिग्नल उपलब्ध होगा:",
+        buy: "खरीदें",
+        sell: "बेचें",
+        confidenceHigh: "उच्च",
+        confidenceMedium: "मध्यम",
+        confidenceLow: "निम्न"
+      },
+      "pt-BR": {
+        pageTitle: "TRUE TRADING",
+        marketForex: "Forex",
+        marketOtc: "OTC",
+        languageLabel: "Idioma",
+        pairLabel: "Par de Moedas",
+        expiryLabel: "Tempo de Expiração",
+        buttonGetSignal: "Obter Sinal",
+        buttonCooldown: "Aguarde...",
+        signalGenerated: "Sinal Gerado!",
+        directionLabel: "Direção do Sinal",
+        confidenceLabel: "Nível de Confiança",
+        sendToBot: "Enviar Sinal ao Bot",
+        cooldownText: "O próximo sinal estará disponível em:",
+        buy: "Comprar",
+        sell: "Vender",
+        confidenceHigh: "Alto",
+        confidenceMedium: "Médio",
+        confidenceLow: "Baixo"
+      },
+      fr: {
+        pageTitle: "TRUE TRADING",
+        marketForex: "Forex",
+        marketOtc: "OTC",
+        languageLabel: "Langue",
+        pairLabel: "Paire de Devises",
+        expiryLabel: "Temps d'Expiration",
+        buttonGetSignal: "Obtenir le Signal",
+        buttonCooldown: "Veuillez patienter...",
+        signalGenerated: "Signal Généré !",
+        directionLabel: "Direction du Signal",
+        confidenceLabel: "Niveau de Confiance",
+        sendToBot: "Envoyer le Signal au Bot",
+        cooldownText: "Le prochain signal sera disponible dans :",
+        buy: "Acheter",
+        sell: "Vendre",
+        confidenceHigh: "Élevé",
+        confidenceMedium: "Moyen",
+        confidenceLow: "Faible"
+      },
+      es: {
+        pageTitle: "TRUE TRADING",
+        marketForex: "Forex",
+        marketOtc: "OTC",
+        languageLabel: "Idioma",
+        pairLabel: "Par de Divisas",
+        expiryLabel: "Tiempo de Expiración",
+        buttonGetSignal: "Obtener Señal",
+        buttonCooldown: "Espera...",
+        signalGenerated: "¡Señal Generada!",
+        directionLabel: "Dirección de la Señal",
+        confidenceLabel: "Nivel de Confianza",
+        sendToBot: "Enviar Señal al Bot",
+        cooldownText: "La próxima señal estará disponible en:",
+        buy: "Comprar",
+        sell: "Vender",
+        confidenceHigh: "Alta",
+        confidenceMedium: "Media",
+        confidenceLow: "Baja"
+      },
+      it: {
+        pageTitle: "TRUE TRADING",
+        marketForex: "Forex",
+        marketOtc: "OTC",
+        languageLabel: "Lingua",
+        pairLabel: "Coppia Valutaria",
+        expiryLabel: "Tempo di Scadenza",
+        buttonGetSignal: "Ottieni Segnale",
+        buttonCooldown: "Attendi...",
+        signalGenerated: "Segnale Generato!",
+        directionLabel: "Direzione del Segnale",
+        confidenceLabel: "Livello di Fiducia",
+        sendToBot: "Invia Segnale al Bot",
+        cooldownText: "Il prossimo segnale sarà disponibile tra:",
+        buy: "Compra",
+        sell: "Vendi",
+        confidenceHigh: "Alta",
+        confidenceMedium: "Media",
+        confidenceLow: "Bassa"
+      },
+      uz: {
+        pageTitle: "TRUE TRADING",
+        marketForex: "Forex",
+        marketOtc: "OTC",
+        languageLabel: "Til",
+        pairLabel: "Valyuta Juftligi",
+        expiryLabel: "Ekspiratsiya Vaqti",
+        buttonGetSignal: "Signal Olish",
+        buttonCooldown: "Kuting...",
+        signalGenerated: "Signal Yaratildi!",
+        directionLabel: "Signal Yo'nalishi",
+        confidenceLabel: "Ishonch Darajasi",
+        sendToBot: "Signalni Botga Yuborish",
+        cooldownText: "Keyingi signal quyidagidan so'ng mavjud bo'ladi:",
+        buy: "Sotib Olish",
+        sell: "Sotish",
+        confidenceHigh: "Yuqori",
+        confidenceMedium: "O'rta",
+        confidenceLow: "Past"
+      },
+      de: {
+        pageTitle: "TRUE TRADING",
+        marketForex: "Forex",
+        marketOtc: "OTC",
+        languageLabel: "Sprache",
+        pairLabel: "Währungspaar",
+        expiryLabel: "Ablaufzeit",
+        buttonGetSignal: "Signal Abrufen",
+        buttonCooldown: "Bitte warten...",
+        signalGenerated: "Signal Generiert!",
+        directionLabel: "Signalrichtung",
+        confidenceLabel: "Vertrauensniveau",
+        sendToBot: "Signal An Bot Senden",
+        cooldownText: "Das nächste Signal ist verfügbar in:",
+        buy: "Kaufen",
+        sell: "Verkaufen",
+        confidenceHigh: "Hoch",
+        confidenceMedium: "Mittel",
+        confidenceLow: "Niedrig"
+      },
+      tr: {
+        pageTitle: "TRUE TRADING",
+        marketForex: "Forex",
+        marketOtc: "OTC",
+        languageLabel: "Dil",
+        pairLabel: "Döviz Çifti",
+        expiryLabel: "Vade Süresi",
+        buttonGetSignal: "Sinyal Al",
+        buttonCooldown: "Lutfen bekleyin...",
+        signalGenerated: "Sinyal Oluşturuldu!",
+        directionLabel: "Sinyal Yönü",
+        confidenceLabel: "Güven Seviyesi",
+        sendToBot: "Sinyali Bota Gönder",
+        cooldownText: "Bir sonraki sinyal şu süre sonra hazır olacak:",
+        buy: "Al",
+        sell: "Sat",
+        confidenceHigh: "Yüksek",
+        confidenceMedium: "Orta",
+        confidenceLow: "Düşük"
+      }
+    };
+
+    let state = {
+      market: "forex",
+      expiry: "1m",
+      language: "ru",
+      lastDirection: null,
+      lastConfidence: null,
+      cooldownRemaining: 0,
+      cooldownUntil: 0
+    };
+
+    let cooldownIntervalId = null;
+    let liveClockIntervalId = null;
+
+    function getText() {
+      return translations[state.language] || translations.ru;
+    }
+
+    function getConfidenceOptions() {
+      const text = getText();
+      return [
+        { label: text.confidenceHigh, className: "high" },
+        { label: text.confidenceMedium, className: "medium" },
+        { label: text.confidenceLow, className: "low" }
+      ];
+    }
+
+    function renderLanguage() {
+      const text = getText();
+      document.documentElement.lang = state.language;
+      document.title = text.pageTitle;
+      pageTitle.textContent = text.pageTitle;
+      marketButtons[0].textContent = text.marketForex;
+      marketButtons[1].textContent = text.marketOtc;
+      languageLabel.textContent = text.languageLabel;
+      pairLabel.textContent = text.pairLabel;
+      expiryLabel.textContent = text.expiryLabel;
+      generateBtn.textContent = state.cooldownRemaining > 0 ? text.buttonCooldown : text.buttonGetSignal;
+      signalCardTitle.textContent = text.signalGenerated;
+      directionLabel.textContent = text.directionLabel;
+      confidenceLabel.textContent = text.confidenceLabel;
+      cooldownText.textContent = text.cooldownText;
+
+      if (state.lastDirection) {
+        signalDirection.textContent = state.lastDirection === "BUY" ? text.buy : text.sell;
+      }
+
+      if (state.lastConfidence) {
+        const confidenceMap = {
+          high: text.confidenceHigh,
+          medium: text.confidenceMedium,
+          low: text.confidenceLow
+        };
+        signalConfidence.textContent = confidenceMap[state.lastConfidence];
+      }
+
+      if (tg) {
+        tg.MainButton.setText(text.sendToBot);
+      }
+
+    }
+
+    function getIndicatorValue() {
+      return `${80 + Math.floor(Math.random() * 21)}%`;
+    }
+
+    function renderIndicators(direction) {
+      const className = direction === "BUY" ? "buy" : "sell";
+
+      indicatorMacd.textContent = getIndicatorValue();
+      indicatorEma.textContent = getIndicatorValue();
+      indicatorRsi.textContent = getIndicatorValue();
+
+      indicatorMacd.className = "indicator-card__value " + className;
+      indicatorEma.className = "indicator-card__value " + className;
+      indicatorRsi.className = "indicator-card__value " + className;
+    }
+
+    function getCooldownSeconds(expiryValue) {
+      if (expiryValue.endsWith("s")) {
+        return Number.parseInt(expiryValue, 10);
+      }
+
+      if (expiryValue.endsWith("m")) {
+        return Number.parseInt(expiryValue, 10) * 60;
+      }
+
+      return 60;
+    }
+
+    function formatCooldown(seconds) {
+      const safeSeconds = Math.max(0, seconds);
+      const minutes = Math.floor(safeSeconds / 60);
+      const secs = safeSeconds % 60;
+      return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+    }
+
+    function updateLiveClock() {
+      signalTime.textContent = new Date().toLocaleTimeString("ru-RU", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+    }
+
+    function startLiveClock() {
+      updateLiveClock();
+
+      if (liveClockIntervalId) {
+        clearInterval(liveClockIntervalId);
+      }
+
+      liveClockIntervalId = setInterval(updateLiveClock, 1000);
+    }
+
+    function syncCooldownUi() {
+      const text = getText();
+      const isActive = state.cooldownRemaining > 0;
+
+      generateBtn.disabled = isActive;
+      generateBtn.textContent = isActive ? text.buttonCooldown : text.buttonGetSignal;
+      cooldownBanner.classList.toggle("is-active", isActive);
+      cooldownTimer.textContent = formatCooldown(state.cooldownRemaining);
+    }
+
+    function stopCooldown() {
+      if (cooldownIntervalId) {
+        clearInterval(cooldownIntervalId);
+        cooldownIntervalId = null;
+      }
+
+      state.cooldownRemaining = 0;
+      state.cooldownUntil = 0;
+      syncCooldownUi();
+    }
+
+    function startCooldown(expiryValue) {
+      const duration = getCooldownSeconds(expiryValue);
+
+      if (cooldownIntervalId) {
+        clearInterval(cooldownIntervalId);
+      }
+
+      state.cooldownRemaining = duration;
+      state.cooldownUntil = Date.now() + duration * 1000;
+      syncCooldownUi();
+
+      cooldownIntervalId = setInterval(() => {
+        const remaining = Math.max(0, Math.ceil((state.cooldownUntil - Date.now()) / 1000));
+        state.cooldownRemaining = remaining;
+        syncCooldownUi();
+
+        if (remaining <= 0) {
+          stopCooldown();
+        }
+      }, 250);
+    }
+
+    function renderCustomSelect(root, items, selectedValue, options = {}) {
+      const selectedItem = items.find((item) => item.value === selectedValue) || items[0];
+      const withFlags = options.withFlags;
+      const withMarketTags = options.withMarketTags;
+
+      root.innerHTML = `
+        <button class="custom-select__trigger" type="button" aria-expanded="false">
+          <span class="custom-select__value">
+            ${withFlags ? `<span class="custom-select__flag">${selectedItem.flag || ""}</span>` : ""}
+            <span class="custom-select__text">${selectedItem.label || selectedItem.value}</span>
+          </span>
+        </button>
+        <div class="custom-select__menu">
+          <div class="custom-select__list">
+            ${items.map((item) => `
+              <button
+                class="custom-select__option${item.value === selectedValue ? " is-selected" : ""}"
+                type="button"
+                data-value="${item.value}"
+              >
+                ${withFlags ? `<span class="custom-select__flag">${item.flag || ""}</span>` : ""}
+                <span>${item.label || item.value}</span>
+                ${withMarketTags ? `<span class="custom-select__option-sub">${item.market}</span>` : ""}
+              </button>
+            `).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    function closeCustomSelect(root) {
+      root.classList.remove("is-open");
+      const trigger = root.querySelector(".custom-select__trigger");
+      if (trigger) {
+        trigger.setAttribute("aria-expanded", "false");
+      }
+    }
+
+    function closeAllCustomSelects(except) {
+      document.querySelectorAll(".custom-select").forEach((selectRoot) => {
+        if (selectRoot !== except) {
+          closeCustomSelect(selectRoot);
+        }
+      });
+    }
+
+    function bindCustomSelect(root, onSelect) {
+      const trigger = root.querySelector(".custom-select__trigger");
+      const options = root.querySelectorAll(".custom-select__option");
+
+      if (!trigger) {
+        return;
+      }
+
+      trigger.addEventListener("click", () => {
+        const willOpen = !root.classList.contains("is-open");
+        closeAllCustomSelects(root);
+        root.classList.toggle("is-open", willOpen);
+        trigger.setAttribute("aria-expanded", willOpen ? "true" : "false");
+      });
+
+      options.forEach((option) => {
+        option.addEventListener("click", () => {
+          onSelect(option.dataset.value);
+          closeCustomSelect(root);
+        });
+      });
+    }
+
+    function renderLanguageSelect() {
+      renderCustomSelect(languageSelect, languages, state.language, { withFlags: true });
+      bindCustomSelect(languageSelect, setLanguage);
+    }
+
+    function renderPairSelect() {
+      const visiblePairs = pairOptions.filter((item) => item.market === state.market);
+      if (!visiblePairs.some((item) => item.value === pairInput.value)) {
+        pairInput.value = visiblePairs[0].value;
+      }
+      renderCustomSelect(pairSelect, visiblePairs, pairInput.value, { withMarketTags: false });
+      bindCustomSelect(pairSelect, setPair);
+    }
+
+    function setMarket(nextMarket) {
+      state.market = nextMarket;
+      marketButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.market === nextMarket);
+      });
+      renderPairSelect();
+      updateMeta();
+    }
+
+    function setExpiry(nextExpiry, button) {
+      state.expiry = nextExpiry;
+      expiryButtons.forEach((item) => item.classList.toggle("active", item === button));
+      updateMeta();
+    }
+
+    function updateMeta() {
+      signalMeta.innerHTML = pairInput.value + " &nbsp; " + state.expiry;
+    }
+
+    function generateSignal() {
+      if (state.cooldownRemaining > 0) {
+        return;
+      }
+
+      const text = getText();
+      const confidences = getConfidenceOptions();
+      const direction = Math.random() > 0.5 ? "BUY" : "SELL";
+      const confidence = confidences[Math.floor(Math.random() * confidences.length)];
+      const directionClass = direction === "BUY" ? "buy" : "sell";
+      state.lastDirection = direction;
+      state.lastConfidence = confidence.className;
+
+      signalDirection.textContent = direction === "BUY" ? text.buy : text.sell;
+      signalDirection.className = "signal-box__value " + directionClass;
+      signalDirectionIcon.className = "signal-hero__icon " + directionClass;
+      signalDirectionIcon.innerHTML = direction === "BUY"
+        ? `
+          <svg viewBox="0 0 64 64" fill="none">
+            <path d="M14 44L28 30L37 39L50 23" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M39 23H50V34" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        `
+        : `
+          <svg viewBox="0 0 64 64" fill="none">
+            <path d="M14 20L28 34L37 25L50 41" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M39 41H50V30" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        `;
+
+      signalConfidence.textContent = confidence.label;
+      signalConfidence.className = "signal-box__subvalue " + confidence.className;
+      renderIndicators(direction);
+
+      updateMeta();
+
+      if (tg) {
+        tg.HapticFeedback.notificationOccurred("success");
+        tg.MainButton.setText(text.sendToBot);
+        tg.MainButton.show();
+        tg.MainButton.onClick(() => {
+          tg.sendData(JSON.stringify({
+            pair: pairInput.value,
+            market: state.market,
+            expiry: state.expiry,
+            direction: signalDirection.textContent,
+            confidence: signalConfidence.textContent,
+            time: signalTime.textContent
+          }));
+        });
+      }
+
+      startCooldown(state.expiry);
+    }
+
+    function setLanguage(nextLanguage) {
+      state.language = nextLanguage;
+      languageInput.value = nextLanguage;
+      renderLanguage();
+      renderLanguageSelect();
+      updateMeta();
+    }
+
+    function setPair(nextPair) {
+      pairInput.value = nextPair;
+      renderPairSelect();
+      updateMeta();
+    }
+
+    marketButtons.forEach((button) => {
+      button.addEventListener("click", () => setMarket(button.dataset.market));
+    });
+
+    expiryButtons.forEach((button) => {
+      button.addEventListener("click", () => setExpiry(button.dataset.value, button));
+    });
+
+    generateBtn.addEventListener("click", generateSignal);
+
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".custom-select")) {
+        closeAllCustomSelects();
+      }
+    });
+
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      document.documentElement.style.background = "transparent";
+      document.body.style.background = "transparent";
+    }
+
+    renderLanguageSelect();
+    renderPairSelect();
+    setMarket("forex");
+    setLanguage("ru");
+    syncCooldownUi();
+    startLiveClock();
+  </script>
+</body>
+</html>
