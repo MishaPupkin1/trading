@@ -1268,7 +1268,7 @@
       }
 
       if (tg) {
-        tg.MainButton.setText(text.sendToBot);
+        tg.MainButton.hide();
       }
 
     }
@@ -1509,18 +1509,7 @@
 
       if (tg) {
         tg.HapticFeedback.notificationOccurred("success");
-        tg.MainButton.setText(text.sendToBot);
-        tg.MainButton.show();
-        tg.MainButton.onClick(() => {
-          tg.sendData(JSON.stringify({
-            pair: pairInput.value,
-            market: state.market,
-            expiry: state.expiry,
-            direction: signalDirection.textContent,
-            confidence: signalConfidence.textContent,
-            time: signalTime.textContent
-          }));
-        });
+        tg.MainButton.hide();
       }
 
       startCooldown(state.expiry);
@@ -1559,8 +1548,7 @@
     if (tg) {
       tg.ready();
       tg.expand();
-      document.documentElement.style.background = "transparent";
-      document.body.style.background = "transparent";
+      tg.MainButton.hide();
     }
 
     renderLanguageSelect();
