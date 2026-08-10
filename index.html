@@ -375,8 +375,8 @@
           <label id="lblEma">EMA 200 (Фильтр тренда)</label>
           <div class="select-shell">
             <select id="emaSelect">
-              <option value="above">🟢 Цена ВЫШЕ EMA 200 (Бычий тренд)</option>
-              <option value="below">🔴 Цена НИЖЕ EMA 200 (Медвежий тренд)</option>
+              <option value="above" id="optEmaAbove">🟢 Цена ВЫШЕ EMA 200 (Бычий тренд)</option>
+              <option value="below" id="optEmaBelow">🔴 Цена НИЖЕ EMA 200 (Медвежий тренд)</option>
             </select>
           </div>
         </div>
@@ -386,9 +386,9 @@
           <label id="lblMacd">MACD (12,26,9) Импульс</label>
           <div class="select-shell">
             <select id="macdSelect">
-              <option value="bullish">🟢 Бычий импульс (Пересечение вверх / Зелёная гистограмма)</option>
-              <option value="bearish">🔴 Медвежий импульс (Пересечение вниз / Красная гистограмма)</option>
-              <option value="neutral">⚪ Нейтрально (Флэт)</option>
+              <option value="bullish" id="optMacdBull">🟢 Бычий импульс (Пересечение вверх / Зелёная)</option>
+              <option value="bearish" id="optMacdBear">🔴 Медвежий импульс (Пересечение вниз / Красная)</option>
+              <option value="neutral" id="optMacdNeu">⚪ Нейтрально (Флэт)</option>
             </select>
           </div>
         </div>
@@ -398,9 +398,9 @@
           <label id="lblBb">Bollinger Bands Канал</label>
           <div class="select-shell">
             <select id="bbSelect">
-              <option value="lower">🟢 Касание НИЖНЕЙ полосы (Поддержка / Отскок ВВЕРХ)</option>
-              <option value="upper">🔴 Касание ВЕРХНЕЙ полосы (Сопротивление / Отскок ВНИЗ)</option>
-              <option value="neutral">⚪ Внутри канала (Нейтрально)</option>
+              <option value="lower" id="optBbLower">🟢 Касание НИЖНЕЙ полосы (Отскок ВВЕРХ)</option>
+              <option value="upper" id="optBbUpper">🔴 Касание ВЕРХНЕЙ полосы (Отскок ВНИЗ)</option>
+              <option value="neutral" id="optBbNeu">⚪ Внутри канала (Нейтрально)</option>
             </select>
           </div>
         </div>
@@ -447,7 +447,7 @@
       </div>
 
       <div class="cooldown-banner" id="cooldownBanner">
-        ⏱ До следующего анализа: <b id="cooldownTimer">00:00</b>
+        <span id="cooldownLabel">⏱ До следующего анализа:</span> <b id="cooldownTimer">00:00</b>
       </div>
     </section>
   </div>
@@ -456,6 +456,115 @@
     const tg = window.Telegram?.WebApp;
     if (tg) { tg.ready(); tg.expand(); }
 
+    const i18n = {
+      ru: {
+        pageTitle: "PRO CONFLUENCE TRADING",
+        lblLang: "Язык интерфейса",
+        lblExpiry: "Время экспирации",
+        lblIndHeader: "5 Индикаторов рынка",
+        lblRsi: "RSI (14)",
+        lblStoch: "Stochastic",
+        lblEma: "EMA 200 (Фильтр тренда)",
+        emaAbove: "🟢 Цена ВЫШЕ EMA 200 (Бычий тренд)",
+        emaBelow: "🔴 Цена НИЖЕ EMA 200 (Медвежий тренд)",
+        lblMacd: "MACD (12,26,9) Импульс",
+        macdBullish: "🟢 Бычий импульс (Пересечение вверх / Зелёная)",
+        macdBearish: "🔴 Медвежий импульс (Пересечение вниз / Красная)",
+        macdNeutral: "⚪ Нейтрально (Флэт)",
+        lblBb: "Bollinger Bands Канал",
+        bbLower: "🟢 Касание НИЖНЕЙ полосы (Отскок ВВЕРХ)",
+        bbUpper: "🔴 Касание ВЕРХНЕЙ полосы (Отскок ВНИЗ)",
+        bbNeutral: "⚪ Внутри канала (Нейтрально)",
+        btnAnalyze: "Проанализировать 5 индикаторов 🚀",
+        btnCooldown: "Ожидайте...",
+        signalCall: "🟢 ВХОД ВВЕРХ (CALL)",
+        signalPut: "🔴 ВХОД ВНИЗ (PUT)",
+        signalSkip: "⚠️ НЕТ СИГНАЛА / ПРОПУСТИТЬ",
+        metaExpiry: "Экспирация",
+        metaAcc: "Точность",
+        emaAboveVal: "Выше 🟢",
+        emaBelowVal: "Ниже 🔴",
+        macdBullVal: "Бычий 🟢",
+        macdBearVal: "Медвежий 🔴",
+        macdNeuVal: "Флэт ⚪",
+        bbLowerVal: "Нижняя 🟢",
+        bbUpperVal: "Верхняя 🔴",
+        bbNeuVal: "Канал ⚪",
+        cooldownLabel: "⏱ До следующего анализа:"
+      },
+      en: {
+        pageTitle: "PRO CONFLUENCE TRADING",
+        lblLang: "Interface Language",
+        lblExpiry: "Expiration Time",
+        lblIndHeader: "5 Market Indicators",
+        lblRsi: "RSI (14)",
+        lblStoch: "Stochastic",
+        lblEma: "EMA 200 (Trend Filter)",
+        emaAbove: "🟢 Price ABOVE EMA 200 (Bullish Trend)",
+        emaBelow: "🔴 Price BELOW EMA 200 (Bearish Trend)",
+        lblMacd: "MACD (12,26,9) Impulse",
+        macdBullish: "🟢 Bullish Impulse (Cross UP / Green)",
+        macdBearish: "🔴 Bearish Impulse (Cross DOWN / Red)",
+        macdNeutral: "⚪ Neutral (Flat)",
+        lblBb: "Bollinger Bands Channel",
+        bbLower: "🟢 Touch LOWER Band (Bounce UP)",
+        bbUpper: "🔴 Touch UPPER Band (Bounce DOWN)",
+        bbNeutral: "⚪ Inside Channel (Neutral)",
+        btnAnalyze: "Analyze 5 Indicators 🚀",
+        btnCooldown: "Please wait...",
+        signalCall: "🟢 BUY / CALL (UP)",
+        signalPut: "🔴 SELL / PUT (DOWN)",
+        signalSkip: "⚠️ NO SIGNAL / SKIP",
+        metaExpiry: "Expiration",
+        metaAcc: "Accuracy",
+        emaAboveVal: "Above 🟢",
+        emaBelowVal: "Below 🔴",
+        macdBullVal: "Bullish 🟢",
+        macdBearVal: "Bearish 🔴",
+        macdNeuVal: "Flat ⚪",
+        bbLowerVal: "Lower 🟢",
+        bbUpperVal: "Upper 🔴",
+        bbNeuVal: "Channel ⚪",
+        cooldownLabel: "⏱ Next analysis in:"
+      },
+      uz: {
+        pageTitle: "PRO CONFLUENCE TRADING",
+        lblLang: "Interfeys Tili",
+        lblExpiry: "Ekspiratsiya Vaqti",
+        lblIndHeader: "5 Bosh Indikatorlar",
+        lblRsi: "RSI (14)",
+        lblStoch: "Stochastic",
+        lblEma: "EMA 200 (Trend Filtr)",
+        emaAbove: "🟢 Narx EMA 200 DAN YUQORI (Buqa Trendi)",
+        emaBelow: "🔴 Narx EMA 200 DAN PASTI (Aiq Trendi)",
+        lblMacd: "MACD (12,26,9) Impuls",
+        macdBullish: "🟢 Buqa Impulsi (Yuqoriga kesishuv / Yashil)",
+        macdBearish: "🔴 Aiq Impulsi (Pastga kesishuv / Qizil)",
+        macdNeutral: "⚪ Neytral (Flet)",
+        lblBb: "Bollinger Bands Kanali",
+        bbLower: "🟢 PASTI chiziqqa tegish (YUQORIGA)",
+        bbUpper: "🔴 YUQORI chiziqqa tegish (PASTGA)",
+        bbNeutral: "⚪ Kanal ichida (Neytral)",
+        btnAnalyze: "5 Indikatorni Tahlil Qilish 🚀",
+        btnCooldown: "Kuting...",
+        signalCall: "🟢 YUQORIGA (CALL)",
+        signalPut: "🔴 PASTGA (PUT)",
+        signalSkip: "⚠️ SIGNAL YO'Q / O'TKAZISH",
+        metaExpiry: "Ekspiratsiya",
+        metaAcc: "Aniqlik",
+        emaAboveVal: "Yuqori 🟢",
+        emaBelowVal: "Pasti 🔴",
+        macdBullVal: "Buqa 🟢",
+        macdBearVal: "Aiq 🔴",
+        macdNeuVal: "Flet ⚪",
+        bbLowerVal: "Pasti 🟢",
+        bbUpperVal: "Yuqori 🔴",
+        bbNeuVal: "Kanal ⚪",
+        cooldownLabel: "⏱ Keyingi tahlilga:"
+      }
+    };
+
+    let currentLang = "ru";
     let currentExpiry = "1M";
     let cooldownUntil = 0;
     let cooldownTimerId = null;
@@ -482,6 +591,44 @@
 
     const cooldownBanner = document.getElementById("cooldownBanner");
     const cooldownTimer = document.getElementById("cooldownTimer");
+    const cooldownLabel = document.getElementById("cooldownLabel");
+
+    function setLanguage(lang) {
+      if (!i18n[lang]) lang = "ru";
+      currentLang = lang;
+      langSelect.value = lang;
+      const t = i18n[lang];
+
+      document.getElementById("pageTitle").textContent = t.pageTitle;
+      document.getElementById("lblLang").textContent = t.lblLang;
+      document.getElementById("lblExpiry").textContent = t.lblExpiry;
+      document.getElementById("lblIndHeader").textContent = t.lblIndHeader;
+      document.getElementById("lblRsi").textContent = t.lblRsi;
+      document.getElementById("lblStoch").textContent = t.lblStoch;
+      document.getElementById("lblEma").textContent = t.lblEma;
+      document.getElementById("lblMacd").textContent = t.lblMacd;
+      document.getElementById("lblBb").textContent = t.lblBb;
+
+      document.getElementById("optEmaAbove").textContent = t.emaAbove;
+      document.getElementById("optEmaBelow").textContent = t.emaBelow;
+
+      document.getElementById("optMacdBull").textContent = t.macdBullish;
+      document.getElementById("optMacdBear").textContent = t.macdBearish;
+      document.getElementById("optMacdNeu").textContent = t.macdNeutral;
+
+      document.getElementById("optBbLower").textContent = t.bbLower;
+      document.getElementById("optBbUpper").textContent = t.bbUpper;
+      document.getElementById("optBbNeu").textContent = t.bbNeutral;
+
+      if (Date.now() >= cooldownUntil) {
+        analyzeBtn.textContent = t.btnAnalyze;
+      } else {
+        analyzeBtn.textContent = t.btnCooldown;
+      }
+      cooldownLabel.textContent = t.cooldownLabel;
+    }
+
+    langSelect.addEventListener("change", (e) => setLanguage(e.target.value));
 
     expiryGrid.querySelectorAll(".expiry-chip").forEach(chip => {
       chip.addEventListener("click", () => {
@@ -543,6 +690,7 @@
       if (Date.now() < cooldownUntil) return;
 
       const res = analyzeMarket();
+      const t = i18n[currentLang];
 
       signalCard.classList.add("is-visible");
 
@@ -550,23 +698,23 @@
         signalIcon.className = "signal-hero__icon buy";
         signalIcon.innerHTML = "▲";
         signalDirection.className = "signal-title buy";
-        signalDirection.textContent = "🟢 ВХОД ВВЕРХ (CALL)";
+        signalDirection.textContent = t.signalCall;
         signalAcc.textContent = res.accuracy + "%";
       } else if (res.direction === "SELL") {
         signalIcon.className = "signal-hero__icon sell";
         signalIcon.innerHTML = "▼";
         signalDirection.className = "signal-title sell";
-        signalDirection.textContent = "🔴 ВХОД ВНИЗ (PUT)";
+        signalDirection.textContent = t.signalPut;
         signalAcc.textContent = res.accuracy + "%";
       } else {
         signalIcon.className = "signal-hero__icon neutral";
         signalIcon.innerHTML = "⚠️";
         signalDirection.className = "signal-title neutral";
-        signalDirection.textContent = "⚠️ НЕТ СИГНАЛА / ПРОПУСТИТЬ";
+        signalDirection.textContent = t.signalSkip;
         signalAcc.textContent = "—";
       }
 
-      signalMeta.innerHTML = `Экспирация: <b>${currentExpiry}</b> • Точность: <b id="signalAcc">${res.direction === "NEUTRAL" ? "—" : res.accuracy + "%"}</b>`;
+      signalMeta.innerHTML = `${t.metaExpiry}: <b>${currentExpiry}</b> • ${t.metaAcc}: <b id="signalAcc">${res.direction === "NEUTRAL" ? "—" : res.accuracy + "%"}</b>`;
 
       indRsiVal.textContent = `${res.rsi} ${res.rsi <= 30 ? '🟢' : res.rsi >= 70 ? '🔴' : '⚪'}`;
       indRsiVal.className = `ind-box__val ${res.rsi <= 30 ? 'buy' : res.rsi >= 70 ? 'sell' : 'neutral'}`;
@@ -574,13 +722,13 @@
       indStochVal.textContent = `${res.stoch} ${res.stoch <= 20 ? '🟢' : res.stoch >= 80 ? '🔴' : '⚪'}`;
       indStochVal.className = `ind-box__val ${res.stoch <= 20 ? 'buy' : res.stoch >= 80 ? 'sell' : 'neutral'}`;
 
-      indEmaVal.textContent = res.emaTrend === 'above' ? 'Выше 🟢' : 'Ниже 🔴';
+      indEmaVal.textContent = res.emaTrend === 'above' ? t.emaAboveVal : t.emaBelowVal;
       indEmaVal.className = `ind-box__val ${res.emaTrend === 'above' ? 'buy' : 'sell'}`;
 
-      indMacdVal.textContent = res.macdImpulse === 'bullish' ? 'Бычий 🟢' : res.macdImpulse === 'bearish' ? 'Медвежий 🔴' : 'Флэт ⚪';
+      indMacdVal.textContent = res.macdImpulse === 'bullish' ? t.macdBullVal : res.macdImpulse === 'bearish' ? t.macdBearVal : t.macdNeuVal;
       indMacdVal.className = `ind-box__val ${res.macdImpulse === 'bullish' ? 'buy' : res.macdImpulse === 'bearish' ? 'sell' : 'neutral'}`;
 
-      indBbVal.textContent = res.bbPosition === 'lower' ? 'Нижняя 🟢' : res.bbPosition === 'upper' ? 'Верхняя 🔴' : 'Канал ⚪';
+      indBbVal.textContent = res.bbPosition === 'lower' ? t.bbLowerVal : res.bbPosition === 'upper' ? t.bbUpperVal : t.bbNeuVal;
       indBbVal.className = `ind-box__val ${res.bbPosition === 'lower' ? 'buy' : res.bbPosition === 'upper' ? 'sell' : 'neutral'}`;
 
       const totalConf = Math.max(res.callScore, res.putScore);
@@ -591,7 +739,6 @@
         tg.HapticFeedback.notificationOccurred(res.direction === "NEUTRAL" ? "warning" : "success");
       }
 
-      // Кулдаун 15 секунд
       startCooldown(15);
     });
 
@@ -609,10 +756,17 @@
         if (left <= 0) {
           clearInterval(cooldownTimerId);
           analyzeBtn.disabled = false;
+          analyzeBtn.textContent = i18n[currentLang].btnAnalyze;
           cooldownBanner.classList.remove("is-active");
         }
       }, 250);
     }
+
+    // Auto detect language from URL ?lang=en or Telegram user lang
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramLang = urlParams.get("lang");
+    const initLang = paramLang || (tg?.initDataUnsafe?.user?.language_code || "ru").toLowerCase();
+    setLanguage(initLang.includes("uz") ? "uz" : initLang.includes("en") ? "en" : "ru");
   </script>
 </body>
 </html>
