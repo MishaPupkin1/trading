@@ -648,7 +648,7 @@
       let callScore = 0;
       let putScore = 0;
 
-      // 1. RSI (25%)
+      // 1. RSI (25%) - Симметричные пороговые уровни
       if (rsi <= 30) callScore += 25;
       else if (rsi <= 40) callScore += 15;
       else if (rsi >= 70) putScore += 25;
@@ -660,27 +660,31 @@
       else if (stoch >= 80) putScore += 25;
       else if (stoch >= 70) putScore += 15;
 
-      // 3. EMA 200 (20%)
+      // 3. EMA 200 (20%) - Фильтр генерального тренда
       if (emaTrend === "above") callScore += 20;
       else if (emaTrend === "below") putScore += 20;
 
-      // 4. MACD (15%)
+      // 4. MACD (15%) - Импульс
       if (macdImpulse === "bullish") callScore += 15;
       else if (macdImpulse === "bearish") putScore += 15;
 
-      // 5. Bollinger Bands (15%)
+      // 5. Bollinger Bands (15%) - Канал цены
       if (bbPosition === "lower") callScore += 15;
       else if (bbPosition === "upper") putScore += 15;
 
       let direction = "NEUTRAL";
       let accuracy = 0;
 
+      // Условие выдачи сигнала: минимум 60% баллов сходимости
       if (callScore >= 60 && callScore > putScore) {
         direction = "BUY";
-        accuracy = Math.min(98, callScore);
+        // Фильтр по тренду EMA: если торгуем ПО тренду EMA 200, точность выше
+        const trendBonus = (emaTrend === "above") ? 5 : -5;
+        accuracy = Math.min(98, Math.max(68, callScore + trendBonus));
       } else if (putScore >= 60 && putScore > callScore) {
         direction = "SELL";
-        accuracy = Math.min(98, putScore);
+        const trendBonus = (emaTrend === "below") ? 5 : -5;
+        accuracy = Math.min(98, Math.max(68, putScore + trendBonus));
       }
 
       return { direction, accuracy, rsi, stoch, emaTrend, macdImpulse, bbPosition, callScore, putScore };
